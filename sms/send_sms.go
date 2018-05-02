@@ -86,7 +86,7 @@ func (s *sendOptions) Response() *SendSmsResponse {
 
 type SendAction interface {
 	action
-	Do(extOpts ...option) (SendOptions, error)
+	Do(extOpts ...Option) (SendOptions, error)
 }
 
 type sendAction struct {
@@ -94,7 +94,7 @@ type sendAction struct {
 }
 
 // Do the send action
-func (a *sendAction) Do(extOpts ...option) (SendOptions, error) {
+func (a *sendAction) Do(extOpts ...Option) (SendOptions, error) {
 	opts, err := a.baseAction.doAction(extOpts...)
 	if err != nil {
 		return nil, err

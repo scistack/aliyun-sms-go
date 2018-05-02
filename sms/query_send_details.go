@@ -95,7 +95,7 @@ func (q *querySendDetailsOptions) Response() *QuerySendDetailsResponse {
 
 type QuerySendDetailsAction interface {
 	action
-	Do(extOpts ...option) (QuerySendDetailsOptions, error)
+	Do(extOpts ...Option) (QuerySendDetailsOptions, error)
 }
 
 type querySendDetailsAction struct {
@@ -103,7 +103,7 @@ type querySendDetailsAction struct {
 }
 
 // Do the send action
-func (a *querySendDetailsAction) Do(extOpts ...option) (QuerySendDetailsOptions, error) {
+func (a *querySendDetailsAction) Do(extOpts ...Option) (QuerySendDetailsOptions, error) {
 	opts, err := a.baseAction.doAction(extOpts...)
 	if err != nil {
 		return nil, err

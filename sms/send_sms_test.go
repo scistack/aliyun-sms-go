@@ -27,8 +27,8 @@ func (h testSendHandler) DoReq(opts Options) ([]byte, error) {
 	return body, nil
 }
 
-func testSendActionDo(t *testing.T, rightUrl string, templateParam TemplateParam, outId string, extOpts ...option) {
-	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption{testSendHandler{}})
+func testSendActionDo(t *testing.T, rightUrl string, templateParam TemplateParam, outId string, extOpts ...Option) {
+	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption(testSendHandler{}))
 
 	a := NewSendAction(c, SendSmsParams{
 		"cn-hangzhou",
@@ -93,7 +93,7 @@ func BenchmarkSendAction_Do(b *testing.B) {
 		outId})
 
 	for i := 0; i < b.N; i++ {
-		_, err := a.Do(ReqHandlerOption{testSendHandler{}})
+		_, err := a.Do(ReqHandlerOption(testSendHandler{}))
 		if err != nil {
 			b.Fatal(err)
 		}

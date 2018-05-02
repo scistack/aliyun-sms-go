@@ -35,8 +35,8 @@ func (h testQuerySendDetailsHandler) DoReq(opts Options) ([]byte, error) {
 	return body, nil
 }
 
-func testQuerySendDetailsActionDo(t *testing.T, rightUrl string, extOpts ...option) {
-	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption{testQuerySendDetailsHandler{}})
+func testQuerySendDetailsActionDo(t *testing.T, rightUrl string, extOpts ...Option) {
+	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption(testQuerySendDetailsHandler{}))
 
 	a := NewQuerySendDetailsAction(c, QuerySendDetailsParams{
 		RegionId:    "cn-hangzhou",
@@ -83,7 +83,7 @@ func BenchmarkQuerySendDetailsAction_Do(b *testing.B) {
 	})
 
 	for i := 0; i < b.N; i++ {
-		_, err := a.Do(ReqHandlerOption{testQuerySendDetailsHandler{}})
+		_, err := a.Do(ReqHandlerOption(testQuerySendDetailsHandler{}))
 		if err != nil {
 			b.Fatal(err)
 		}

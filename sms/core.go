@@ -23,8 +23,13 @@ type FormatType string
 type SignatureMethod string
 type Timestamp time.Time
 type SignatureNonce uuid.UUID
-type ReqHandlerOption struct {
-	Handler RequestHandler
+
+type reqHandlerOption struct {
+	handler ReqHandler
+}
+
+func ReqHandlerOption(handler ReqHandler) Option {
+	return reqHandlerOption{handler: handler}
 }
 
 const DefaultSignatureVersion = "1.0"
@@ -66,7 +71,7 @@ func (ts Timestamp) MarshalJSON() ([]byte, error) {
 }
 
 // Handler for aliyun sms api request
-type RequestHandler interface {
+type ReqHandler interface {
 	DoReq(opts Options) ([]byte, error)
 }
 
@@ -93,14 +98,14 @@ type baseAction struct {
 	c              *Client
 	businessParams interface{}
 	responseType   reflect.Type
-	reqHandler     RequestHandler
+	reqHandler     ReqHandler
 }
 
 func (a *baseAction) Client() Client {
 	return *a.c
 }
 
-func (a *baseAction) generateOpts(extOpts ...option) (*options, error) {
+func (a *baseAction) generateOpts(extOpts ...Option) (*options, error) {
 	opts := options{}
 
 	opts.systemParams.AccessKeyId = a.c.conf.AccessKeyId
@@ -122,7 +127,7 @@ func (a *baseAction) generateOpts(extOpts ...option) (*options, error) {
 	opts.reqHandler = a.reqHandler
 
 	for _, opt := range extOpts {
-		opt.apply(&opts)
+		opt.Apply(&opts)
 	}
 
 	opts.res = reflect.New(a.responseType).Interface()
@@ -130,7 +135,7 @@ func (a *baseAction) generateOpts(extOpts ...option) (*options, error) {
 	return &opts, nil
 }
 
-func (a *baseAction) doAction(extOpts ...option) (*options, error) {
+func (a *baseAction) doAction(extOpts ...Option) (*options, error) {
 	opts, err := a.generateOpts(extOpts...)
 	if err != nil {
 		return nil, err
@@ -197,6 +202,11 @@ type Options interface {
 	Url() string
 	EndPoint() string
 	AccessSecret() string
+
+	SetSignatureNonce(s SignatureNonce)
+	SetFormatType(f FormatType)
+	SetTimestamp(ts Timestamp)
+	SetReqHandler(reqHandler ReqHandler)
 }
 
 type options struct {
@@ -205,9 +215,25 @@ type options struct {
 	accessSecret   string
 	endPoint       string
 
-	reqHandler RequestHandler
+	reqHandler ReqHandler
 	res        interface{}
 	url        string
+}
+
+func (opts *options) SetSignatureNonce(s SignatureNonce) {
+	opts.systemParams.SignatureNonce = s
+}
+
+func (opts *options) SetFormatType(f FormatType) {
+	opts.systemParams.Format = f
+}
+
+func (opts *options) SetTimestamp(ts Timestamp) {
+	opts.systemParams.Timestamp = ts
+}
+
+func (opts *options) SetReqHandler(reqHandler ReqHandler) {
+	opts.reqHandler = reqHandler
 }
 
 func (opts *options) Url() string {
@@ -250,28 +276,28 @@ func (opts *options) Signature() string {
 	return opts.systemParams.Signature
 }
 
-type option interface {
-	apply(*options)
+type Option interface {
+	Apply(opts Options)
 }
 
 func (s SignatureNonce) String() string {
 	return uuid.UUID(s).String()
 }
 
-func (s SignatureNonce) apply(opts *options) {
-	opts.systemParams.SignatureNonce = s
+func (s SignatureNonce) Apply(opts Options) {
+	opts.SetSignatureNonce(s)
 }
 
-func (f FormatType) apply(opts *options) {
-	opts.systemParams.Format = f
+func (f FormatType) Apply(opts Options) {
+	opts.SetFormatType(f)
 }
 
-func (ts Timestamp) apply(opts *options) {
-	opts.systemParams.Timestamp = ts
+func (ts Timestamp) Apply(opts Options) {
+	opts.SetTimestamp(ts)
 }
 
-func (opt ReqHandlerOption) apply(opts *options) {
-	opts.reqHandler = opt.Handler
+func (handlerOpt reqHandlerOption) Apply(opts Options) {
+	opts.SetReqHandler(handlerOpt.handler)
 }
 
 func (opts *options) generateUrl() (err error) {
