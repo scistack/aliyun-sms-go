@@ -18,43 +18,69 @@ import (
 	"time"
 )
 
+// ActionType is type of business param "Action"
 type ActionType = string
+
+// FormatType is type of system param "Format"
 type FormatType string
+
+// SignatureMethod is type of system param "SignatureMethod"
 type SignatureMethod string
+
+// Timestamp is type of system param "Timestamp"
 type Timestamp time.Time
+
+// SignatureNonce is type of system param "SignatureNonce"
 type SignatureNonce uuid.UUID
 
 type reqHandlerOption struct {
 	handler ReqHandler
 }
 
+// ReqHandlerOption is helper func to set ReqHandler Option
 func ReqHandlerOption(handler ReqHandler) Option {
 	return reqHandlerOption{handler: handler}
 }
 
+// DefaultSignatureVersion "1.0"
 const DefaultSignatureVersion = "1.0"
+
+// DefaultEndPoint "http://dysmsapi.aliyuncs.com/"
 const DefaultEndPoint = "http://dysmsapi.aliyuncs.com/"
+
+// DefaultVersion "2017-05-25"
 const DefaultVersion = "2017-05-25"
+
+// HTTPMethod "GET"
 const HTTPMethod = "GET"
 
 const (
-	SendSms          = "SendSms"
+	// SendSms is value of business param "Action"
+	SendSms = "SendSms"
+
+	// QuerySendDetails is value of business param "Action"
 	QuerySendDetails = "QuerySendDetails"
 )
 
 const (
+	// JSON is value of system param "Format"
 	JSON FormatType = "JSON"
-	XML  FormatType = "XML"
+
+	// XML is value of system param "Format"
+	XML FormatType = "XML"
 )
 
 const (
+	// HmacSha1 is value of system param "SignatureMethod"
 	HmacSha1 SignatureMethod = "HMAC-SHA1"
 )
 
+// String returns the Timestamp of type "2006-01-02T15:04:05Z07:00"
 func (ts Timestamp) String() string {
 	return time.Time(ts).Format(time.RFC3339)
 }
 
+// MarshalJSON implements the encoding.Marshaler interface.
 func (ts Timestamp) MarshalJSON() ([]byte, error) {
 	t := time.Time(ts)
 	if y := t.Year(); y < 0 || y >= 10000 {
@@ -70,7 +96,7 @@ func (ts Timestamp) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
-// Handler for aliyun sms api request
+// ReqHandler for aliyun sms api request
 type ReqHandler interface {
 	DoReq(opts Options) ([]byte, error)
 }
@@ -78,7 +104,7 @@ type ReqHandler interface {
 type defaultReqHandler struct{}
 
 func (h defaultReqHandler) DoReq(opts Options) ([]byte, error) {
-	resp, err := http.Get(opts.Url())
+	resp, err := http.Get(opts.URL())
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +134,7 @@ func (a *baseAction) Client() Client {
 func (a *baseAction) generateOpts(extOpts ...Option) (*options, error) {
 	opts := options{}
 
-	opts.systemParams.AccessKeyId = a.c.conf.AccessKeyId
+	opts.systemParams.AccessKeyID = a.c.conf.AccessKeyID
 	opts.accessSecret = a.c.conf.AccessSecret
 	opts.endPoint = a.c.conf.Endpoint
 
@@ -140,7 +166,7 @@ func (a *baseAction) doAction(extOpts ...Option) (*options, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = opts.generateUrl()
+	err = opts.generateURL()
 	if err != nil {
 		return nil, err
 	}
@@ -154,22 +180,26 @@ func (a *baseAction) doAction(extOpts ...Option) (*options, error) {
 	return opts, nil
 }
 
-type Response struct {
+type response struct {
 	RequestID string `json:"RequestId" xml:"RequestId"`
 	Code      string `json:"Code" xml:"Code"`
 	Message   string `json:"Message" xml:"Message"`
 }
 
+// Config of client
 type Config struct {
-	AccessKeyId  string
+	AccessKeyID  string
 	AccessSecret string
 	Endpoint     string
 }
 
+// Client of aliyun sms
+// it's concurrent safe
 type Client struct {
 	conf *Config
 }
 
+// NewClient ini a new sms client
 func NewClient(conf Config) Client {
 	sc := Client{}
 	if ed := conf.Endpoint; ed == "" {
@@ -181,7 +211,7 @@ func NewClient(conf Config) Client {
 }
 
 type systemParams struct {
-	AccessKeyId      string          `param:"AccessKeyId"`
+	AccessKeyID      string          `param:"AccessKeyId"`
 	Timestamp        Timestamp       `param:"Timestamp"`
 	Format           FormatType      `param:"Format,omitempty"`
 	SignatureMethod  SignatureMethod `param:"SignatureMethod"`
@@ -190,8 +220,9 @@ type systemParams struct {
 	Signature        string          `param:"Signature,omitempty"`
 }
 
+// Options represent every action's configurations
 type Options interface {
-	AccessKeyId() string
+	AccessKeyID() string
 	Timestamp() Timestamp
 	Format() FormatType
 	SignatureMethod() SignatureMethod
@@ -199,7 +230,7 @@ type Options interface {
 	SignatureNonce() SignatureNonce
 	Signature() string
 
-	Url() string
+	URL() string
 	EndPoint() string
 	AccessSecret() string
 
@@ -236,7 +267,7 @@ func (opts *options) SetReqHandler(reqHandler ReqHandler) {
 	opts.reqHandler = reqHandler
 }
 
-func (opts *options) Url() string {
+func (opts *options) URL() string {
 	return opts.url
 }
 
@@ -248,8 +279,8 @@ func (opts *options) AccessSecret() string {
 	return opts.accessSecret
 }
 
-func (opts *options) AccessKeyId() string {
-	return opts.systemParams.AccessKeyId
+func (opts *options) AccessKeyID() string {
+	return opts.systemParams.AccessKeyID
 }
 
 func (opts *options) Timestamp() Timestamp {
@@ -276,7 +307,9 @@ func (opts *options) Signature() string {
 	return opts.systemParams.Signature
 }
 
+// Option represent a single config in every action's configuration
 type Option interface {
+	// Apply this option to Options
 	Apply(opts Options)
 }
 
@@ -284,23 +317,27 @@ func (s SignatureNonce) String() string {
 	return uuid.UUID(s).String()
 }
 
+// Apply option SignatureNonce
 func (s SignatureNonce) Apply(opts Options) {
 	opts.SetSignatureNonce(s)
 }
 
+// Apply option FormatType
 func (f FormatType) Apply(opts Options) {
 	opts.SetFormatType(f)
 }
 
+// Apply option Timestamp
 func (ts Timestamp) Apply(opts Options) {
 	opts.SetTimestamp(ts)
 }
 
+// Apply option ReqHandler
 func (handlerOpt reqHandlerOption) Apply(opts Options) {
 	opts.SetReqHandler(handlerOpt.handler)
 }
 
-func (opts *options) generateUrl() (err error) {
+func (opts *options) generateURL() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(runtime.Error); ok {
@@ -339,7 +376,7 @@ func (opts *options) sortedQueryString() string {
 	prepareParameters(&data, opts.systemParams, opts.businessParams)
 
 	// data.Encode() encodes the value sorted by key
-	return specialUrlEncode(data.Encode())
+	return specialURLEncode(data.Encode())
 }
 
 func (opts *options) processResponse(data []byte) error {
@@ -388,10 +425,10 @@ func prepareParameters(data *url.Values, params ...interface{}) {
 }
 
 func specialQueryEscape(s string) string {
-	return specialUrlEncode(url.QueryEscape(s))
+	return specialURLEncode(url.QueryEscape(s))
 }
 
-func specialUrlEncode(s string) string {
+func specialURLEncode(s string) string {
 	s = strings.Replace(s, "+", "%20", -1)
 	s = strings.Replace(s, "*", "%2A", -1)
 	s = strings.Replace(s, "%7E", "~", -1)

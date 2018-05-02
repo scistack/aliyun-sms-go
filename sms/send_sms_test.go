@@ -9,7 +9,7 @@ type testSendHandler struct {
 }
 
 var rightSendSmsRes = SendSmsResponse{
-	Response{
+	response{
 		"6EE2B27D-6833-4D5F-9B9B-CE7FA0A85CC7",
 		"OK",
 		"OK"},
@@ -27,7 +27,7 @@ func (h testSendHandler) DoReq(opts Options) ([]byte, error) {
 	return body, nil
 }
 
-func testSendActionDo(t *testing.T, rightUrl string, templateParam TemplateParam, outId string, extOpts ...Option) {
+func testSendActionDo(t *testing.T, rightURL string, templateParam TemplateParam, outID string, extOpts ...Option) {
 	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption(testSendHandler{}))
 
 	a := NewSendAction(c, SendSmsParams{
@@ -36,13 +36,13 @@ func testSendActionDo(t *testing.T, rightUrl string, templateParam TemplateParam
 		"阿里云短信测试专用",
 		"SMS_71390007",
 		templateParam,
-		outId})
+		outID})
 	opts, err := a.Do(extOpts...)
 	if err != nil {
 		t.Errorf("Do \"SendSms\" action err: %v", err)
 	}
-	if opts.Url() != rightUrl {
-		t.Errorf("Url: %s != %s", opts.Url(), rightUrl)
+	if opts.URL() != rightURL {
+		t.Errorf("URL: %s != %s", opts.URL(), rightURL)
 	}
 
 	res := *opts.Response()
@@ -56,12 +56,12 @@ func TestSendAction_Do(t *testing.T) {
 	// JSON
 	testSendActionDo(t,
 		"http://dysmsapi.aliyuncs.com/?Signature=gr6VTI2L7pboVdzhg6m96zGfofw%3D&AccessKeyId=testId&Action=SendSms&Format=JSON&OutId=123&PhoneNumbers=15300000001&RegionId=cn-hangzhou&SignName=%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%B5%8B%E8%AF%95%E4%B8%93%E7%94%A8&SignatureMethod=HMAC-SHA1&SignatureNonce=57d1303b-0068-4892-994d-c2d70d4c37c6&SignatureVersion=1.0&TemplateCode=SMS_71390007&TemplateParam=%7B%22customer%22%3A%22test%22%7D&Timestamp=2018-04-09T15%3A27%3A02Z&Version=2017-05-25",
-		templateParam, outId)
+		templateParam, outID)
 
 	// XML
 	testSendActionDo(t,
 		"http://dysmsapi.aliyuncs.com/?Signature=IjPuuQwDI864Lsn2ccnzcyOvKEs%3D&AccessKeyId=testId&Action=SendSms&Format=XML&OutId=123&PhoneNumbers=15300000001&RegionId=cn-hangzhou&SignName=%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%B5%8B%E8%AF%95%E4%B8%93%E7%94%A8&SignatureMethod=HMAC-SHA1&SignatureNonce=57d1303b-0068-4892-994d-c2d70d4c37c6&SignatureVersion=1.0&TemplateCode=SMS_71390007&TemplateParam=%7B%22customer%22%3A%22test%22%7D&Timestamp=2018-04-09T15%3A27%3A02Z&Version=2017-05-25",
-		templateParam, outId, XML)
+		templateParam, outID, XML)
 
 	// omit optional params
 	// JSON
@@ -90,7 +90,7 @@ func BenchmarkSendAction_Do(b *testing.B) {
 		"阿里云短信测试专用",
 		"SMS_71390007",
 		templateParam,
-		outId})
+		outID})
 
 	for i := 0; i < b.N; i++ {
 		_, err := a.Do(ReqHandlerOption(testSendHandler{}))

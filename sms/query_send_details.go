@@ -6,16 +6,23 @@ import (
 )
 
 const (
+	// QueryMinPageSize is lower limit page size in api param
 	QueryMinPageSize = 1
+
+	// QueryMaxPageSize is upper limit page size in api param
 	QueryMaxPageSize = 50
 )
 
+// Date is type of business param "Date"
 type Date time.Time
 
+// String returns the Date of type "20060102"
 func (d Date) String() string {
 	return time.Time(d).Format("20060102")
 }
 
+// DateStr is a helper func to transform string to type Date
+// will panic if time.Parse("20060102", value) returns an err
 func DateStr(value string) Date {
 	d, err := time.Parse("20060102", value)
 	if err != nil {
@@ -24,13 +31,14 @@ func DateStr(value string) Date {
 	return Date(d)
 }
 
+// QuerySendDetailsParams is business param of action "QuerySendDetails"
 type QuerySendDetailsParams struct {
 	PhoneNumber string `param:"PhoneNumber"`
-	BizId       string `param:"BizId,omitempty"`
+	BizID       string `param:"BizId,omitempty"`
 	SendDate    Date   `param:"SendDate"`
 	PageSize    int    `param:"PageSize"`
 	CurrentPage int    `param:"CurrentPage"`
-	RegionId    string `param:"RegionId,omitempty"`
+	RegionID    string `param:"RegionId,omitempty"`
 }
 
 type querySendDetailsParams struct {
@@ -39,16 +47,17 @@ type querySendDetailsParams struct {
 	*QuerySendDetailsParams
 }
 
+// QuerySendDetailsOptions represent QuerySendDetailsAction's configurations
 type QuerySendDetailsOptions interface {
 	Options
 	Action() ActionType
 	Version() string
 	PhoneNumber() string
-	BizId() string
+	BizID() string
 	SendDate() Date
 	PageSize() int
 	CurrentPage() int
-	RegionId() string
+	RegionID() string
 
 	Response() *QuerySendDetailsResponse
 }
@@ -69,8 +78,8 @@ func (q *querySendDetailsOptions) PhoneNumber() string {
 	return q.businessParams.(*querySendDetailsParams).PhoneNumber
 }
 
-func (q *querySendDetailsOptions) BizId() string {
-	return q.businessParams.(*querySendDetailsParams).BizId
+func (q *querySendDetailsOptions) BizID() string {
+	return q.businessParams.(*querySendDetailsParams).BizID
 }
 
 func (q *querySendDetailsOptions) SendDate() Date {
@@ -85,14 +94,15 @@ func (q *querySendDetailsOptions) CurrentPage() int {
 	return q.businessParams.(*querySendDetailsParams).CurrentPage
 }
 
-func (q *querySendDetailsOptions) RegionId() string {
-	return q.businessParams.(*querySendDetailsParams).RegionId
+func (q *querySendDetailsOptions) RegionID() string {
+	return q.businessParams.(*querySendDetailsParams).RegionID
 }
 
 func (q *querySendDetailsOptions) Response() *QuerySendDetailsResponse {
 	return q.res.(*QuerySendDetailsResponse)
 }
 
+// QuerySendDetailsAction is action "QuerySendDetails"
 type QuerySendDetailsAction interface {
 	action
 	Do(extOpts ...Option) (QuerySendDetailsOptions, error)
@@ -120,7 +130,7 @@ func (p *QuerySendDetailsParams) cleanParams() {
 	}
 }
 
-// NewQuerySendDetailsAction init a "QuerySendDetails" action
+// NewQuerySendDetailsAction init an action "QuerySendDetails"
 // can be used concurrently
 func NewQuerySendDetailsAction(c Client, params QuerySendDetailsParams) QuerySendDetailsAction {
 	params.cleanParams()
@@ -139,6 +149,7 @@ func NewQuerySendDetailsAction(c Client, params QuerySendDetailsParams) QuerySen
 	}
 }
 
+// SendDetailDTO of every sms
 type SendDetailDTO struct {
 	PhoneNum     string `json:"PhoneNum" xml:"PhoneNum"`
 	SendStatus   int    `json:"SendStatus" xml:"SendStatus"`
@@ -147,15 +158,17 @@ type SendDetailDTO struct {
 	Content      string `json:"Content" xml:"Content"`
 	SendDate     string `json:"SendDate" xml:"SendDate"`
 	ReceiveDate  string `json:"ReceiveDate" xml:"ReceiveDate"`
-	OutId        string `json:"OutId" xml:"OutId"`
+	OutID        string `json:"OutId" xml:"OutId"`
 }
 
+// SendDetailDTOs have list of SendDetailDTO
 type SendDetailDTOs struct {
 	SmsSendDetailDTO []SendDetailDTO `json:"SmsSendDetailDTO" xml:"SmsSendDetailDTO"`
 }
 
+// QuerySendDetailsResponse is response of action "QuerySendDetails"
 type QuerySendDetailsResponse struct {
-	Response
+	response
 	TotalCount        int            `json:"TotalCount" xml:"TotalCount"`
 	TotalPage         int            `json:"TotalPage" xml:"TotalPage"`
 	SmsSendDetailDTOs SendDetailDTOs `json:"SmsSendDetailDTOs" xml:"SmsSendDetailDTOs"`

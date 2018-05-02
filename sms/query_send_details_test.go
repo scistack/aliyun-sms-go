@@ -10,7 +10,7 @@ type testQuerySendDetailsHandler struct {
 }
 
 var rightQuerySendDetailsRes = QuerySendDetailsResponse{
-	Response{
+	response{
 		"0F8F57E7-B72B-492A-853F-F0F8A78D4DEE",
 		"OK",
 		"OK",
@@ -20,7 +20,7 @@ var rightQuerySendDetailsRes = QuerySendDetailsResponse{
 	SendDetailDTOs{[]SendDetailDTO{
 		{PhoneNum: "15300000001", SendStatus: 3, ErrCode: "DELIVRD",
 			TemplateCode: "SMS_132940015", Content: "【可乐贩售机】正在使用Go SDK，版本号：v1.0。",
-			SendDate: "2018-04-27 14:19:30", ReceiveDate: "2018-04-27 14:19:35", OutId: "123"},
+			SendDate: "2018-04-27 14:19:30", ReceiveDate: "2018-04-27 14:19:35", OutID: "123"},
 	}},
 }
 
@@ -35,11 +35,11 @@ func (h testQuerySendDetailsHandler) DoReq(opts Options) ([]byte, error) {
 	return body, nil
 }
 
-func testQuerySendDetailsActionDo(t *testing.T, rightUrl string, extOpts ...Option) {
+func testQuerySendDetailsActionDo(t *testing.T, rightURL string, extOpts ...Option) {
 	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption(testQuerySendDetailsHandler{}))
 
 	a := NewQuerySendDetailsAction(c, QuerySendDetailsParams{
-		RegionId:    "cn-hangzhou",
+		RegionID:    "cn-hangzhou",
 		PhoneNumber: "15300000001",
 		SendDate:    Date(ts),
 	})
@@ -48,8 +48,8 @@ func testQuerySendDetailsActionDo(t *testing.T, rightUrl string, extOpts ...Opti
 	if err != nil {
 		t.Errorf("Do \"QuerySendDetails\" action err: %v", err)
 	}
-	if opts.Url() != rightUrl {
-		t.Errorf("Url: %s != %s", opts.Url(), rightUrl)
+	if opts.URL() != rightURL {
+		t.Errorf("URL: %s != %s", opts.URL(), rightURL)
 	}
 
 	res := *opts.Response()
@@ -77,7 +77,7 @@ func TestDate_String(t *testing.T) {
 // Use test request Handler, no network latency
 func BenchmarkQuerySendDetailsAction_Do(b *testing.B) {
 	a := NewQuerySendDetailsAction(c, QuerySendDetailsParams{
-		RegionId:    "cn-hangzhou",
+		RegionID:    "cn-hangzhou",
 		PhoneNumber: "15300000001",
 		SendDate:    Date(ts),
 	})

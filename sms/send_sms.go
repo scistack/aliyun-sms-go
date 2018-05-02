@@ -5,8 +5,10 @@ import (
 	"reflect"
 )
 
+// TemplateParam is type of business param "TemplateParam"
 type TemplateParam map[string]string
 
+// String returns the TemplateParam of type JSON string
 func (tp TemplateParam) String() string {
 	data, err := json.Marshal(tp)
 	if err != nil {
@@ -15,13 +17,14 @@ func (tp TemplateParam) String() string {
 	return string(data)
 }
 
+// SendSmsParams is business param of action "SendSms"
 type SendSmsParams struct {
-	RegionId      string        `param:"RegionId"`
+	RegionID      string        `param:"RegionId"`
 	PhoneNumbers  string        `param:"PhoneNumbers"`
 	SignName      string        `param:"SignName"`
 	TemplateCode  string        `param:"TemplateCode"`
 	TemplateParam TemplateParam `param:"TemplateParam,omitempty"`
-	OutId         string        `param:"OutId,omitempty"`
+	OutID         string        `param:"OutId,omitempty"`
 }
 
 type sendSmsParams struct {
@@ -30,16 +33,17 @@ type sendSmsParams struct {
 	*SendSmsParams
 }
 
-type SendOptions interface {
+// SendSmsOptions represent SendSmsAction's configurations
+type SendSmsOptions interface {
 	Options
 	Action() string
 	Version() string
-	RegionId() string
+	RegionID() string
 	PhoneNumbers() string
 	SignName() string
 	TemplateCode() string
 	TemplateParam() TemplateParam
-	OutId() string
+	OutID() string
 
 	Response() *SendSmsResponse
 }
@@ -56,8 +60,8 @@ func (s *sendOptions) Version() string {
 	return s.businessParams.(*sendSmsParams).Version
 }
 
-func (s *sendOptions) RegionId() string {
-	return s.businessParams.(*sendSmsParams).RegionId
+func (s *sendOptions) RegionID() string {
+	return s.businessParams.(*sendSmsParams).RegionID
 }
 
 func (s *sendOptions) PhoneNumbers() string {
@@ -76,17 +80,18 @@ func (s *sendOptions) TemplateParam() TemplateParam {
 	return s.businessParams.(*sendSmsParams).TemplateParam
 }
 
-func (s *sendOptions) OutId() string {
-	return s.businessParams.(*sendSmsParams).OutId
+func (s *sendOptions) OutID() string {
+	return s.businessParams.(*sendSmsParams).OutID
 }
 
 func (s *sendOptions) Response() *SendSmsResponse {
 	return s.res.(*SendSmsResponse)
 }
 
-type SendAction interface {
+// SendSmsAction is action "SendSms"
+type SendSmsAction interface {
 	action
-	Do(extOpts ...Option) (SendOptions, error)
+	Do(extOpts ...Option) (SendSmsOptions, error)
 }
 
 type sendAction struct {
@@ -94,7 +99,7 @@ type sendAction struct {
 }
 
 // Do the send action
-func (a *sendAction) Do(extOpts ...Option) (SendOptions, error) {
+func (a *sendAction) Do(extOpts ...Option) (SendSmsOptions, error) {
 	opts, err := a.baseAction.doAction(extOpts...)
 	if err != nil {
 		return nil, err
@@ -102,7 +107,9 @@ func (a *sendAction) Do(extOpts ...Option) (SendOptions, error) {
 	return &sendOptions{opts}, nil
 }
 
-func NewSendAction(c Client, params SendSmsParams) SendAction {
+// NewSendAction init an action "SendSms"
+// can be used concurrently
+func NewSendAction(c Client, params SendSmsParams) SendSmsAction {
 	return &sendAction{
 		baseAction{
 			&c,
@@ -117,7 +124,8 @@ func NewSendAction(c Client, params SendSmsParams) SendAction {
 	}
 }
 
+// SendSmsResponse is response of action "SendSms"
 type SendSmsResponse struct {
-	Response
+	response
 	BizID string `json:"BizId" xml:"BizId"`
 }
