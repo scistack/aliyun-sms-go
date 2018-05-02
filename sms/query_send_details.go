@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	QueryMinPageSize = 1
+	QueryMaxPageSize = 50
+)
+
 type Date time.Time
 
 func (d Date) String() string {
@@ -12,7 +17,10 @@ func (d Date) String() string {
 }
 
 func DateStr(value string) Date {
-	d, _ := time.Parse("20060102", value)
+	d, err := time.Parse("20060102", value)
+	if err != nil {
+		panic(err)
+	}
 	return Date(d)
 }
 
@@ -107,8 +115,8 @@ func (p *QuerySendDetailsParams) cleanParams() {
 	if p.CurrentPage == 0 {
 		p.CurrentPage = 1
 	}
-	if p.PageSize < 1 || p.PageSize > 50 {
-		p.PageSize = 10
+	if p.PageSize < QueryMinPageSize || p.PageSize > QueryMaxPageSize {
+		p.PageSize = QueryMaxPageSize
 	}
 }
 
@@ -126,7 +134,7 @@ func NewQuerySendDetailsAction(c Client, params QuerySendDetailsParams) QuerySen
 				QuerySendDetailsParams: &params,
 			},
 			reflect.TypeOf(QuerySendDetailsResponse{}),
-			defaultHandler{},
+			defaultReqHandler{},
 		},
 	}
 }
@@ -148,7 +156,7 @@ type SendDetailDTOs struct {
 
 type QuerySendDetailsResponse struct {
 	Response
-	TotalCount        int            `json:"TotalCount" xml:"TotalCount"`               // 发送总条数
-	TotalPage         int            `json:"TotalPage" xml:"TotalPage"`                 // 总页数
-	SmsSendDetailDTOs SendDetailDTOs `json:"SmsSendDetailDTOs" xml:"SmsSendDetailDTOs"` // 发送明细结构体
+	TotalCount        int            `json:"TotalCount" xml:"TotalCount"`
+	TotalPage         int            `json:"TotalPage" xml:"TotalPage"`
+	SmsSendDetailDTOs SendDetailDTOs `json:"SmsSendDetailDTOs" xml:"SmsSendDetailDTOs"`
 }

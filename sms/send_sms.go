@@ -112,7 +112,7 @@ func NewSendAction(c Client, params SendSmsParams) SendAction {
 				SendSmsParams: &params,
 			},
 			reflect.TypeOf(SendSmsResponse{}),
-			defaultHandler{},
+			defaultReqHandler{},
 		},
 	}
 }

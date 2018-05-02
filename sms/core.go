@@ -23,6 +23,9 @@ type FormatType string
 type SignatureMethod string
 type Timestamp time.Time
 type SignatureNonce uuid.UUID
+type ReqHandlerOption struct {
+	Handler RequestHandler
+}
 
 const DefaultSignatureVersion = "1.0"
 const DefaultEndPoint = "http://dysmsapi.aliyuncs.com/"
@@ -62,15 +65,15 @@ func (ts Timestamp) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
-// handler for aliyun sms api request
-type requestHandler interface {
-	doReq(opts *options) ([]byte, error)
+// Handler for aliyun sms api request
+type RequestHandler interface {
+	DoReq(opts Options) ([]byte, error)
 }
 
-type defaultHandler struct{}
+type defaultReqHandler struct{}
 
-func (h defaultHandler) doReq(opts *options) ([]byte, error) {
-	resp, err := http.Get(opts.url)
+func (h defaultReqHandler) DoReq(opts Options) ([]byte, error) {
+	resp, err := http.Get(opts.Url())
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +93,7 @@ type baseAction struct {
 	c              *Client
 	businessParams interface{}
 	responseType   reflect.Type
-	reqHandler     requestHandler
+	reqHandler     RequestHandler
 }
 
 func (a *baseAction) Client() Client {
@@ -116,6 +119,7 @@ func (a *baseAction) generateOpts(extOpts ...option) (*options, error) {
 	opts.systemParams.Timestamp = Timestamp(time.Now().UTC())
 
 	opts.businessParams = a.businessParams
+	opts.reqHandler = a.reqHandler
 
 	for _, opt := range extOpts {
 		opt.apply(&opts)
@@ -136,7 +140,7 @@ func (a *baseAction) doAction(extOpts ...option) (*options, error) {
 		return nil, err
 	}
 
-	data, err := a.reqHandler.doReq(opts)
+	data, err := opts.reqHandler.DoReq(opts)
 
 	err = opts.processResponse(data)
 	if err != nil {
@@ -201,8 +205,9 @@ type options struct {
 	accessSecret   string
 	endPoint       string
 
-	res interface{}
-	url string
+	reqHandler RequestHandler
+	res        interface{}
+	url        string
 }
 
 func (opts *options) Url() string {
@@ -263,6 +268,10 @@ func (f FormatType) apply(opts *options) {
 
 func (ts Timestamp) apply(opts *options) {
 	opts.systemParams.Timestamp = ts
+}
+
+func (opt ReqHandlerOption) apply(opts *options) {
+	opts.reqHandler = opt.Handler
 }
 
 func (opts *options) generateUrl() (err error) {

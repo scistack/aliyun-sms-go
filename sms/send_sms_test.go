@@ -16,9 +16,9 @@ var rightSendSmsRes = SendSmsResponse{
 	"199303724724900469^0",
 }
 
-func (h testSendHandler) doReq(opts *options) ([]byte, error) {
+func (h testSendHandler) DoReq(opts Options) ([]byte, error) {
 	var body []byte
-	switch opts.systemParams.Format {
+	switch opts.Format() {
 	case JSON:
 		body = []byte(`{"Message":"OK","RequestId":"6EE2B27D-6833-4D5F-9B9B-CE7FA0A85CC7","BizId":"199303724724900469^0","Code":"OK"}`)
 	case XML:
@@ -27,25 +27,10 @@ func (h testSendHandler) doReq(opts *options) ([]byte, error) {
 	return body, nil
 }
 
-func NewTestSendAction(c Client, params SendSmsParams) SendAction {
-	return &sendAction{
-		baseAction{
-			&c,
-			&sendSmsParams{
-				Action:        SendSms,
-				Version:       DefaultVersion,
-				SendSmsParams: &params,
-			},
-			reflect.TypeOf(SendSmsResponse{}),
-			testSendHandler{},
-		},
-	}
-}
-
 func testSendActionDo(t *testing.T, rightUrl string, templateParam TemplateParam, outId string, extOpts ...option) {
-	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts))
+	extOpts = append(extOpts, SignatureNonce(u4), Timestamp(ts), ReqHandlerOption{testSendHandler{}})
 
-	a := NewTestSendAction(c, SendSmsParams{
+	a := NewSendAction(c, SendSmsParams{
 		"cn-hangzhou",
 		"15300000001",
 		"阿里云短信测试专用",
@@ -57,7 +42,7 @@ func testSendActionDo(t *testing.T, rightUrl string, templateParam TemplateParam
 		t.Errorf("Do \"SendSms\" action err: %v", err)
 	}
 	if opts.Url() != rightUrl {
-		t.Errorf("url: %s != %s", opts.Url(), rightUrl)
+		t.Errorf("Url: %s != %s", opts.Url(), rightUrl)
 	}
 
 	res := *opts.Response()
@@ -90,9 +75,16 @@ func TestSendAction_Do(t *testing.T) {
 		nil, "", XML)
 }
 
-// Use test request handler, no network latency
+func TestTemplateParam_String(t *testing.T) {
+	data := TemplateParam{"version": "v1.0"}
+	if ds := data.String(); ds != `{"version":"v1.0"}` {
+		t.Errorf("TemplateParam string: %s != %s", data.String(), `{"version":"v1.0"}`)
+	}
+}
+
+// Use test request Handler, no network latency
 func BenchmarkSendAction_Do(b *testing.B) {
-	a := NewTestSendAction(c, SendSmsParams{
+	a := NewSendAction(c, SendSmsParams{
 		"cn-hangzhou",
 		"15300000001",
 		"阿里云短信测试专用",
@@ -101,7 +93,7 @@ func BenchmarkSendAction_Do(b *testing.B) {
 		outId})
 
 	for i := 0; i < b.N; i++ {
-		_, err := a.Do()
+		_, err := a.Do(ReqHandlerOption{testSendHandler{}})
 		if err != nil {
 			b.Fatal(err)
 		}
