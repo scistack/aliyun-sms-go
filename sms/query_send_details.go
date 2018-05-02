@@ -166,9 +166,9 @@ type SendDetailDTOs struct {
 	SmsSendDetailDTO []SendDetailDTO `json:"SmsSendDetailDTO" xml:"SmsSendDetailDTO"`
 }
 
-// QuerySendDetailsResponse is response of action "QuerySendDetails"
+// QuerySendDetailsResponse is Response of action "QuerySendDetails"
 type QuerySendDetailsResponse struct {
-	response
+	Response
 	TotalCount        int            `json:"TotalCount" xml:"TotalCount"`
 	TotalPage         int            `json:"TotalPage" xml:"TotalPage"`
 	SmsSendDetailDTOs SendDetailDTOs `json:"SmsSendDetailDTOs" xml:"SmsSendDetailDTOs"`

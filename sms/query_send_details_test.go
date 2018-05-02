@@ -10,7 +10,7 @@ type testQuerySendDetailsHandler struct {
 }
 
 var rightQuerySendDetailsRes = QuerySendDetailsResponse{
-	response{
+	Response{
 		"0F8F57E7-B72B-492A-853F-F0F8A78D4DEE",
 		"OK",
 		"OK",

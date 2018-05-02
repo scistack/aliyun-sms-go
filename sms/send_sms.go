@@ -124,8 +124,8 @@ func NewSendAction(c Client, params SendSmsParams) SendSmsAction {
 	}
 }
 
-// SendSmsResponse is response of action "SendSms"
+// SendSmsResponse is Response of action "SendSms"
 type SendSmsResponse struct {
-	response
+	Response
 	BizID string `json:"BizId" xml:"BizId"`
 }

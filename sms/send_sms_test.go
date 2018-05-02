@@ -9,7 +9,7 @@ type testSendHandler struct {
 }
 
 var rightSendSmsRes = SendSmsResponse{
-	response{
+	Response{
 		"6EE2B27D-6833-4D5F-9B9B-CE7FA0A85CC7",
 		"OK",
 		"OK"},

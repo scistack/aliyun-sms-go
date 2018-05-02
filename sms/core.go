@@ -180,7 +180,8 @@ func (a *baseAction) doAction(extOpts ...Option) (*options, error) {
 	return opts, nil
 }
 
-type response struct {
+// Response represents api response of action
+type Response struct {
 	RequestID string `json:"RequestId" xml:"RequestId"`
 	Code      string `json:"Code" xml:"Code"`
 	Message   string `json:"Message" xml:"Message"`
@@ -307,7 +308,7 @@ func (opts *options) Signature() string {
 	return opts.systemParams.Signature
 }
 
-// Option represent a single config in every action's configuration
+// Option represents a single config in every action's configuration
 type Option interface {
 	// Apply this option to Options
 	Apply(opts Options)
